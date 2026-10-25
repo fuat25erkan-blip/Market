@@ -8,7 +8,7 @@ on:
       - main
       - master
     paths:
-      - 'Market_Telefondan_APK_Hazir.zip'
+      - 'Marketim_Tasarim_Hazir.zip'
       - '.github/workflows/main.yml'
 
 permissions:
@@ -36,13 +36,16 @@ jobs:
       - name: Android proje dosyalarini ac
         run: |
           set -eu
-          unzip -o Market_Telefondan_APK_Hazir.zip -d kaynak
-          PROJE=$(find kaynak -type f -name settings.gradle -print -quit)
+          unzip -o Marketim_Tasarim_Hazir.zip -d kaynak
+          PROJE=$(find kaynak -type f \( -name settings.gradle -o -name settings.gradle.kts \) -print -quit)
           if [ -z "$PROJE" ]; then
-            echo "HATA: settings.gradle bulunamadi."
+            echo "HATA: ZIP icinde settings.gradle veya settings.gradle.kts bulunamadi."
+            echo "ZIP dosyasinin Android proje kaynaklarini icerdigini kontrol edin."
             exit 1
           fi
-          echo "PROJE_DIZINI=$(dirname "$PROJE")" >> "$GITHUB_ENV"
+          PROJE_DIZINI=$(dirname "$PROJE")
+          echo "PROJE_DIZINI=$PROJE_DIZINI" >> "$GITHUB_ENV"
+          echo "Android proje dizini: $PROJE_DIZINI"
 
       - name: APK olustur
         run: |
@@ -52,7 +55,7 @@ jobs:
       - name: APK dosyasini kaydet
         uses: actions/upload-artifact@v4
         with:
-          name: Market-APK
+          name: Marketim-APK
           path: kaynak/**/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 14
