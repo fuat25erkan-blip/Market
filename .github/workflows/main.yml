@@ -1,0 +1,50 @@
+
+name: Market APK Derleme
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'Market_Telefondan_APK_Hazir.zip'
+      - '.github/workflows/main.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Depoyu indir
+        uses: actions/checkout@v4
+
+      - name: Java kur
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Android proje dosyalarını aç
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unzip
+          unzip -o Market_Telefondan_APK_Hazir.zip -d kaynak
+          find kaynak -maxdepth 3 -type f | head -80
+
+      - name: Android SDK kur
+        uses: android-actions/setup-android@v3
+
+      - name: APK oluştur
+        run: |
+          PROJE=$(find kaynak -name gradlew -type f | head -1)
+          if [ -z "$PROJE" ]; then
+            echo "HATA: ZIP içinde gradlew bulunamadı."
+            exit 1
+          fi
+          cd "$(dirname "$PROJE")"
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: APK dosyasını kaydet
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Market-APK
+          path: kaynak/**/*.apk
